@@ -17,7 +17,7 @@ u8 MUL(u8 a, u8 b) { // 곱셈 구현
 	u8 tmp = b;
 	u32 i;
 	for (i = 0; i < 8; i++) {
-		if (a & 1) r ^= tmp;
+		if (a & 1) r = r ^ tmp;
 		tmp = MUL2(tmp);
 		a = a >> 1;
 	}
@@ -73,21 +73,20 @@ void AddRoundKey(u8 S[16],u8 RK[16]) { // 16byte 입력 들어오면 두개를 xor 해서 t
 void SubBytes(u8 S[16]) { // 16 bytes 입력 들어오면 각입력 sbox 대치 해서 출력
 	S[0] = Sbox[S[0]];
 	S[1] = Sbox[S[1]];
-	S[1] = Sbox[S[2]];
-	S[1] = Sbox[S[3]];
-	S[1] = Sbox[S[4]];
-	S[1] = Sbox[S[5]];
-	S[1] = Sbox[S[6]];
-	S[0] = Sbox[S[7]];
-	S[1] = Sbox[S[8]];
-	S[1] = Sbox[S[9]];
-	S[1] = Sbox[S[10]];
-	S[1] = Sbox[S[11]];
-	S[1] = Sbox[S[12]];
-	S[1] = Sbox[S[13]];
-	S[0] = Sbox[S[14]];
-	S[1] = Sbox[S[15]];
-	S[1] = Sbox[S[16]];
+	S[2] = Sbox[S[2]];
+	S[3] = Sbox[S[3]];
+	S[4] = Sbox[S[4]];
+	S[5] = Sbox[S[5]];
+	S[6] = Sbox[S[6]];
+	S[7] = Sbox[S[7]];
+	S[8] = Sbox[S[8]];
+	S[9] = Sbox[S[9]];
+	S[10] = Sbox[S[10]];
+	S[11] = Sbox[S[11]];
+	S[12] = Sbox[S[12]];
+	S[13] = Sbox[S[13]];
+	S[14] = Sbox[S[14]];
+	S[15] = Sbox[S[15]];
 }
 
 void ShiftRows(u8 S[16]) { // 16 bytes shift 한 값
@@ -112,13 +111,12 @@ void MixColumns(u8 S[16]) { // state 각 열을 섞음
 	S[4] = temp[4]; S[5] = temp[5]; S[6] = temp[6]; S[7] = temp[7];
 	S[8] = temp[8]; S[9] = temp[9]; S[10] = temp[10]; S[11] = temp[11];
 	S[12] = temp[12]; S[13] = temp[13]; S[14] = temp[14]; S[15] = temp[15];
-	
 }
 
 
 
 void AES_ENC(u8 PT[16], u8 RK[], u8 CT[16], int keysize) {
-	int Nr = keysize / 32 + 6;
+	int Nr = keysize / 32 + 6; // 라운드수 계산
 	int i;
 	u8 temp[16];
 
@@ -148,10 +146,10 @@ void AES_ENC(u8 PT[16], u8 RK[], u8 CT[16], int keysize) {
 }
 
 
-u32 u4byte_in(u8 *x) {
+
+u32 u4byte_in(u8 * x) {
 	return (x[0] << 24) | (x[1] << 16) | (x[2] << 8) | x[3]; // x[0] || x[1] || x[2] || x[3]
 }
-
 void u4byte_out(u8* x, u32 y) {
 	x[0] = (y >> 24) & 0xff;
 	x[1] = (y >> 16) & 0xff;
@@ -172,37 +170,37 @@ u32 Rcons[10] = { 0x01000000, 0x02000000, 0x04000000, 0x08000000, 0x10000000, 0x
 
 #define RotWord(x) ((x << 8) | (x >> 24))
 
-#define SubWord(x)							\
-((u32)Sbox[(u8)(x >> 24)] << 24)			\
-| ((u32)Sbox[(u8)(x >> 16 & 0xff)] << 16)	\
-| ((u32)Sbox[(u8)(x >> 8 & 0xff)] << 8)		\
-| ((u32)Sbox[(u8)(x & 0xff)])				\
+#define SubWord(x)								\
+	((u32)Sbox[(u8)(x >> 24)] << 24)			\
+	| ((u32)Sbox[(u8)((x >> 16) & 0xff)] << 16)	\
+	| ((u32)Sbox[(u8)((x >> 8) & 0xff)] << 8)		\
+	| ((u32)Sbox[(u8)(x & 0xff)])				\
 
 
 
-	void RoundKeyGeneration128(u8 MK[], u8 RK[]) {
-		u32 W[44];
-		int i;
-		u32 T;
-		W[0] = u4byte_in(MK); // W[0] = MK[0] || MK[1] || MK[2] || MK[3]
-		W[1] = u4byte_in(MK + 4);
-		W[2] = u4byte_in(MK + 8);
-		W[3] = u4byte_in(MK + 12);
+void RoundKeyGeneration128(u8 MK[], u8 RK[]) {
+	u32 W[44];
+	int i;
+	u32 T;
+	W[0] = u4byte_in(MK); // W[0] = MK[0] || MK[1] || MK[2] || MK[3]
+	W[1] = u4byte_in(MK + 4);
+	W[2] = u4byte_in(MK + 8);
+	W[3] = u4byte_in(MK + 12);
 
-		for (i = 0; i < 10; i++) {
-			//T = G_func(W[4 * i + 3]);
-			T = W[4 * i + 3];
-			T = RotWord(T);
-			T = SubWord(T);
-			T = T ^ Rcons[i];
+	for (i = 0; i < 10; i++) {
+		//T = G_func(W[4 * i + 3]);
+		T = W[4 * i + 3];
+		T = RotWord(T);
+		T = SubWord(T);
+		T = T ^ Rcons[i];
 
-			W[4 * i + 4] = W[4 * i] ^ T;
-			W[4 * i + 5] = W[4 * i + 1] ^ W[4 * i + 4];
-			W[4 * i + 6] = W[4 * i + 2] ^ W[4 * i + 5];
-			W[4 * i + 7] = W[4 * i + 3] ^ W[4 * i + 6];
-		}
-		AES_KeyWordToByte(W, RK);
+		W[4 * i + 4] = W[4 * i] ^ T;
+		W[4 * i + 5] = W[4 * i + 1] ^ W[4 * i + 4];
+		W[4 * i + 6] = W[4 * i + 2] ^ W[4 * i + 5];
+		W[4 * i + 7] = W[4 * i + 3] ^ W[4 * i + 6];
 	}
+	AES_KeyWordToByte(W, RK);
+}
 
 
 
@@ -219,11 +217,13 @@ void AES_keySchedule(u8 MK[], u8 RK[], int keysize) {
 
 int main() {
 	int i;
-	u8 PT[16] = { 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff };
-	u8 MK[16] = { 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xef, 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0 };
+	//u8 PT[16] = { 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff };
+	u8 PT[16] = { 0x6b,0xc1,0xbe,0xe2,0x2e,0x40,0x9f,0x96,0xe9,0x3d,0x7e,0x11,0x73,0x93,0x17,0x2a };
+	//u8 MK[16] = { 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xef, 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0 };
+	u8 MK[16] = { 0x2b,0x7e,0x15,0x16,0x28,0xae,0xd2,0xa6,0xab,0xf7,0x15,0x88,0x09,0xcf,0x4f,0x3c};
 	u8 CT[16] = { 0x00, };
 	u8 RK[240] = { 0x00, };
-	int keysize = 126;
+	int keysize = 128;
 
 	AES_keySchedule(MK, RK, keysize); //1round : RK 0~15, 2round : 16~31
 	AES_ENC(PT, RK, CT, keysize);
@@ -232,19 +232,19 @@ int main() {
 	}
 	printf("\n");
 
-	//a = 0xab;
-	//b = 0x38;
-	//c = MUL(a, b);
-	//printf("%02x * %02x = %02x", a, b, c);
-	//printf("Sbox(%02x) = %02x\n", a, GenSbox(a));
+	/*a = 0xab;
+	b = 0x38;
+	c = MUL(a, b);
+	printf("%02x * %02x = %02x", a, b, c);
+	printf("Sbox(%02x) = %02x\n", a, GenSbox(a));
 
-	//printf("Sbox(%02x) = %02x, %02x\n", a, GenSbox(a), Sbox[a]);
-	//printf("Sbox[256] = \n")
-	//for (i = 0; i < 256; i++) { // sbox 만들기
-	//	printf("0x%02x, %02x\n ", GenSbox((u8)i));
-	//	if (i % 16 == 15)
-	//		printf("\n");
-	//}
+	printf("Sbox(%02x) = %02x, %02x\n", a, GenSbox(a), Sbox[a]);
+	printf("Sbox[256] = \n")
+	for (i = 0; i < 256; i++) { // sbox 만들기
+		printf("0x%02x, %02x\n ", GenSbox((u8)i));
+		if (i % 16 == 15)
+			printf("\n");
+	}*/
 
 	return 0;
 }
