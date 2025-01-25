@@ -5,8 +5,8 @@
 #include<time.h>
 #include<memory.h>
 
-#define MUL2(a) (a << 1)^(a & 0x80 ? 0x1b : 0x00) //x ¸¦ °öÇÏ´Â ºÎºĞ => 0x02
-#define MUL3(a) (MUL2(a))^(a) // 3 À» °öÇÏ´Â ºÎºĞ
+#define MUL2(a) (a << 1)^(a & 0x80 ? 0x1b : 0x00) //x ë¥¼ ê³±í•˜ëŠ” ë¶€ë¶„ => 0x02
+#define MUL3(a) (MUL2(a))^(a) // 3 ì„ ê³±í•˜ëŠ” ë¶€ë¶„
 #define MUL4(a) MUL2((MUL2(a)))
 #define MUL8(a) MUL2((MUL2((MUL2(a)))))
 #define MUL9(a) (MUL8(a))^(a)
@@ -17,12 +17,12 @@
 u8 MSBox[256] = { 0, };
 
 
-u8 MUL(u8 a, u8 b) { // °ö¼À ±¸Çö => a * b = c 
+u8 MUL(u8 a, u8 b) { // ê³±ì…ˆ êµ¬í˜„ => a * b = c 
 	u8 r = 0;
 	u8 tmp = b;
 	u32 i;
 	for (i = 0; i < 8; i++) {
-		if (a & 1) //³¡¿¡ ÇÑºñÆ®°¡ 1ÀÎ °æ¿ì
+		if (a & 1) //ëì— í•œë¹„íŠ¸ê°€ 1ì¸ ê²½ìš°
 			r = r ^ tmp;
 		tmp = MUL2(tmp);
 		a = a >> 1;
@@ -30,7 +30,7 @@ u8 MUL(u8 a, u8 b) { // °ö¼À ±¸Çö => a * b = c
 	return r;
 }
 
-void AddRoundKey(u8 S[16], u8 RK[16]) { // 16byte ÀÔ·Â µé¾î¿À¸é µÎ°³¸¦ xor ÇØ¼­ temp ¿¡ ´ã´Â´Ù
+void AddRoundKey(u8 S[16], u8 RK[16]) { // 16byte ì…ë ¥ ë“¤ì–´ì˜¤ë©´ ë‘ê°œë¥¼ xor í•´ì„œ temp ì— ë‹´ëŠ”ë‹¤
 	S[0] = S[0] ^ RK[0];
 	S[1] = S[1] ^ RK[1];
 	S[2] = S[2] ^ RK[2];
@@ -50,7 +50,7 @@ void AddRoundKey(u8 S[16], u8 RK[16]) { // 16byte ÀÔ·Â µé¾î¿À¸é µÎ°³¸¦ xor ÇØ¼­ 
 
 }
 
-void MSubBytes(u8 S[16]) { // 16 bytes ÀÔ·Â µé¾î¿À¸é °¢ÀÔ·Â sbox ´ëÄ¡ ÇØ¼­ Ãâ·Â
+void MSubBytes(u8 S[16]) { // 16 bytes ì…ë ¥ ë“¤ì–´ì˜¤ë©´ ê°ì…ë ¥ sbox ëŒ€ì¹˜ í•´ì„œ ì¶œë ¥
 	S[0] = MSBox[S[0]];
 	S[1] = MSBox[S[1]];
 	S[2] = MSBox[S[2]];
@@ -69,7 +69,7 @@ void MSubBytes(u8 S[16]) { // 16 bytes ÀÔ·Â µé¾î¿À¸é °¢ÀÔ·Â sbox ´ëÄ¡ ÇØ¼­ Ãâ·Â
 	S[15] = MSBox[S[15]];
 }
 
-void ShiftRows(u8 S[16]) { // 16 bytes shift ÇÑ °ª
+void ShiftRows(u8 S[16]) { // 16 bytes shift í•œ ê°’
 	u8 temp;
 	temp = S[1]; // first row
 	S[1] = S[5];
@@ -90,7 +90,7 @@ void ShiftRows(u8 S[16]) { // 16 bytes shift ÇÑ °ª
 
 }
 
-void MixColumns(u8 S[16]) { // state °¢ ¿­À» ¼¯À½
+void MixColumns(u8 S[16]) { // state ê° ì—´ì„ ì„ìŒ
 	u8 temp[16];
 	int i;
 
@@ -109,7 +109,7 @@ void MixColumns(u8 S[16]) { // state °¢ ¿­À» ¼¯À½
 
 
 void AES_ENC_masking(u8 PT[16], u8 RK[], u8 CT[16], int keysize, u8 m[10]) {
-	int Nr = keysize / 32 + 6; // ¶ó¿îµå¼ö °è»ê
+	int Nr = keysize / 32 + 6; // ë¼ìš´ë“œìˆ˜ ê³„ì‚°
 	int i;
 	u8 temp[16];
 
@@ -125,7 +125,7 @@ void AES_ENC_masking(u8 PT[16], u8 RK[], u8 CT[16], int keysize, u8 m[10]) {
 	}
 
 
-	AddRoundKey(temp, RK); // tempÀÇ 16byte ¿Í RKÀÇ Ã¹ 16byte¸¦ xor ÇÏ¿© temp ¿¡ °á°ú¸¦ ´ã´Â ÇÔ¼ö , 0 ¶ó¿îµå
+	AddRoundKey(temp, RK); // tempì˜ 16byte ì™€ RKì˜ ì²« 16byteë¥¼ xor í•˜ì—¬ temp ì— ê²°ê³¼ë¥¼ ë‹´ëŠ” í•¨ìˆ˜ , 0 ë¼ìš´ë“œ
 
 	for (i = 0; i < Nr - 1; i++) {
 		MSubBytes(temp);
@@ -229,17 +229,17 @@ void AES_keySchedule_masking(u8 MK[], u8 RK[], int keysize, u8 m[]) {
 int main() {
 	int i;
 	u8 PT[16] = { 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff };
-	//u8 PT[16] = { 0x6b,0xc1,0xbe,0xe2,0x2e,0x40,0x9f,0x96,0xe9,0x3d,0x7e,0x11,0x73,0x93,0x17,0x2a }; //Æò¹®
+	//u8 PT[16] = { 0x6b,0xc1,0xbe,0xe2,0x2e,0x40,0x9f,0x96,0xe9,0x3d,0x7e,0x11,0x73,0x93,0x17,0x2a }; //í‰ë¬¸
 	u8 MK[16] = { 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0 };
 	//u8 MK[16] = { 0x2b,0x7e,0x15,0x16,0x28,0xae,0xd2,0xa6,0xab,0xf7,0x15,0x88,0x09,0xcf,0x4f,0x3c}; //master key
-	u8 CT[16] = { 0x00, }; // ¾ÏÈ£¹®
+	u8 CT[16] = { 0x00, }; // ì•”í˜¸ë¬¸
 	u8 RK[240] = { 0x00, }; //round key
 	int keysize = 128;
 	u8 temp;
 	u8 m[10];
 
 
-	//³­¼ö 6°³ »ı¼º - m, m', m1, m2, m3, m4 =>  m1', m2', m3' m4'
+	//ë‚œìˆ˜ 6ê°œ ìƒì„± - m, m', m1, m2, m3, m4 =>  m1', m2', m3' m4'
 	srand(time(NULL));
 	m[0] = rand();	//m
 	m[1] = rand();	//m'
