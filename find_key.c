@@ -1,12 +1,13 @@
+//ë§ˆì§€ë§‰ ë¼ìš´ë“œ í‚¤ë¥¼ ì´ìš©í•´ ê° ë¼ìš´ë“œ í‚¤ ì¶œë ¥
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
 
-#define Nk 4  // Å°ÀÇ ¿öµå ¼ö
-#define Nr 10 // ¶ó¿îµå ¼ö
-#define Nb 4  // ºí·Ï Å©±â (¿öµå)
+#define Nk 4  // í‚¤ì˜ ì›Œë“œ ìˆ˜
+#define Nr 10 // ë¼ìš´ë“œ ìˆ˜
+#define Nb 4  // ë¸”ë¡ í¬ê¸° (ì›Œë“œ)
 
-// S-box Å×ÀÌºí
+// S-box í…Œì´ë¸”
 static const uint8_t sbox[256] = {
     0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
     0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
@@ -26,7 +27,7 @@ static const uint8_t sbox[256] = {
     0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16
 };
 
-// Rcon Å×ÀÌºí
+// Rcon í…Œì´ë¸”
 static const uint8_t Rcon[10] = {
     0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36
 };
@@ -47,20 +48,20 @@ void RotWord(uint8_t* word) {
 }
 
 void InverseKeyExpansion(uint8_t* lastRoundKey, uint8_t* roundKeys) {
-    // ¸¶Áö¸· ¶ó¿îµå Å° º¹»ç
+    // ë§ˆì§€ë§‰ ë¼ìš´ë“œ í‚¤ ë³µì‚¬
     memcpy(roundKeys + Nr * 16, lastRoundKey, 16);
 
-    // ¿ª¹æÇâÀ¸·Î °è»ê
+    // ì—­ë°©í–¥ìœ¼ë¡œ ê³„ì‚°
     for (int round = Nr; round > 0; round--) {
         uint8_t* current = roundKeys + round * 16;
         uint8_t* prev = roundKeys + (round - 1) * 16;
 
-        // ¿öµå 4°³¸¦ ¿ª¼øÀ¸·Î °è»ê
+        // ì›Œë“œ 4ê°œë¥¼ ì—­ìˆœìœ¼ë¡œ ê³„ì‚°
         for (int i = 3; i >= 0; i--) {
             if (i == 0) {
-                // Ã¹ ¹øÂ° ¿öµåÀÇ °æ¿ì
+                // ì²« ë²ˆì§¸ ì›Œë“œì˜ ê²½ìš°
                 uint8_t temp[4];
-                memcpy(temp, prev + 12, 4);  // ÀÌÀü ¶ó¿îµåÀÇ ¸¶Áö¸· ¿öµå
+                memcpy(temp, prev + 12, 4);  // ì´ì „ ë¼ìš´ë“œì˜ ë§ˆì§€ë§‰ ì›Œë“œ
                 RotWord(temp);
                 SubWord(temp);
                 temp[0] ^= Rcon[round - 1];
@@ -70,7 +71,7 @@ void InverseKeyExpansion(uint8_t* lastRoundKey, uint8_t* roundKeys) {
                 }
             }
             else {
-                // ³ª¸ÓÁö ¿öµåÀÇ °æ¿ì
+                // ë‚˜ë¨¸ì§€ ì›Œë“œì˜ ê²½ìš°
                 for (int j = 0; j < 4; j++) {
                     prev[i * 4 + j] = current[i * 4 + j] ^ current[(i - 1) * 4 + j];
                 }
@@ -86,7 +87,7 @@ int main() {
 
     InverseKeyExpansion(lastRoundKey, roundKeys);
 
-    // ¸ğµç ¶ó¿îµå Å° Ãâ·Â
+    // ëª¨ë“  ë¼ìš´ë“œ í‚¤ ì¶œë ¥
     for (int round = 0; round <= Nr; round++) {
         printf("Round %2d: ", round);
         for (int j = 0; j < 16; j++) {
